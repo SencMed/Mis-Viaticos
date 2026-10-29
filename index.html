@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#123b35">
+  <meta name="description" content="Control personal de viáticos y fechas de pago.">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <title>Mis Viáticos</title>
+  <style>
+    :root{--ink:#17332e;--muted:#687a75;--green:#176b57;--green2:#dff4eb;--cream:#f4f7f4;--white:#fff;--line:#e0e8e2;--orange:#a65d12;--orangebg:#fff1dc;--red:#a23c3c;--shadow:0 8px 28px rgba(21,57,48,.08)}
+    *{box-sizing:border-box} body{margin:0;background:var(--cream);color:var(--ink);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    header{background:linear-gradient(135deg,#123b35,#1c6b58);color:white;padding:24px 18px 26px;border-radius:0 0 24px 24px}
+    .wrap{max-width:900px;margin:0 auto;padding:0 16px} .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:44px;height:44px;border-radius:14px;background:#ffffff1e;display:grid;place-items:center;font-size:24px}
+    h1{font-size:24px;margin:0;letter-spacing:-.5px} .sub{margin:5px 0 0;color:#d6eee5;font-size:13px}
+    main{padding:18px 0 42px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:-3px}
+    .card,.panel{background:var(--white);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow)}
+    .label{font-size:12px;color:var(--muted);font-weight:650}.amount{font-size:clamp(18px,3vw,25px);font-weight:800;margin-top:7px;letter-spacing:-.5px;overflow-wrap:anywhere}
+    .card.next{background:var(--green2);border-color:#c4e9d9}.card.next .amount{color:var(--green)}
+    .small{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.4}
+    .tabs{display:flex;gap:8px;overflow:auto;padding:18px 0 12px}
+    .tab{border:1px solid var(--line);border-radius:999px;background:white;padding:10px 15px;font-weight:700;color:var(--muted);white-space:nowrap;cursor:pointer}
+    .tab.active{background:var(--ink);color:white;border-color:var(--ink)}
+    .panel{margin-top:10px}.panelhead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+    h2{font-size:18px;margin:0} .btn{border:0;border-radius:12px;padding:11px 14px;font-weight:750;cursor:pointer;font-size:14px}
+    .primary{background:var(--green);color:white}.secondary{background:#edf4f0;color:var(--ink);border:1px solid var(--line)}.danger{background:#fff0f0;color:var(--red)}
+    .formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    label{display:block;font-size:12px;font-weight:750;color:var(--muted);margin-bottom:6px}
+    input,select,textarea{width:100%;border:1px solid #d5e0d9;border-radius:11px;padding:12px;background:#fff;color:var(--ink);font:inherit;font-size:15px}
+    textarea{min-height:72px;resize:vertical}.full{grid-column:1/-1}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    .hidden{display:none!important}.recordlist,.cutlist{display:grid;gap:10px}
+    .item{border:1px solid var(--line);border-radius:14px;padding:13px;display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+    .itemtitle{font-weight:800}.itemmeta{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5}.itemamount{font-weight:850;white-space:nowrap}
+    .pill{display:inline-block;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:800;background:#edf4f0;color:var(--green);margin-top:7px}
+    .pill.pending{background:var(--orangebg);color:var(--orange)}.itembuttons{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.itembuttons button{padding:7px 9px;font-size:12px}
+    .empty{padding:24px 12px;text-align:center;color:var(--muted);font-size:14px}
+    .notice{background:#fff7e8;border:1px solid #f3dfb6;border-radius:13px;padding:12px;color:#74501b;font-size:12px;line-height:1.5;margin-top:14px}
+    .foot{text-align:center;color:var(--muted);font-size:12px;padding:20px 10px}
+    @media(max-width:600px){.cards{grid-template-columns:1fr 1fr}.cards .card:first-child{grid-column:1/-1}.formgrid{grid-template-columns:1fr}.full{grid-column:auto}.panel{padding:14px}.item{flex-direction:column}.itemright{width:100%;display:flex;justify-content:space-between;align-items:center}.amount{font-size:21px}}
+  </style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="brand"><div class="logo">💼</div><div><h1>Mis Viáticos</h1><p class="sub">Tus registros, tus cortes y tus próximos pagos.</p></div></div>
+</div></header>
+<main class="wrap">
+  <section class="cards">
+    <div class="card next"><div class="label">Próximo pago estimado</div><div class="amount" id="nextAmount">C$ 0,00</div><div class="small" id="nextDate">Calculando fecha…</div></div>
+    <div class="card"><div class="label">Registrado para el próximo pago</div><div class="amount" id="nextCount">0</div><div class="small">registros incluidos</div></div>
+    <div class="card"><div class="label">Total registrado este mes</div><div class="amount" id="monthTotal">C$ 0,00</div><div class="small">según las fechas de los viáticos</div></div>
+  </section>
+  <nav class="tabs" aria-label="Secciones">
+    <button class="tab active" data-tab="dashboard">Resumen</button>
+    <button class="tab" data-tab="add">＋ Registrar viático</button>
+    <button class="tab" data-tab="records">Mis registros</button>
+    <button class="tab" data-tab="cuts">Cortes y pagos</button>
+    <button class="tab" data-tab="backup">Copias de seguridad</button>
+  </nav>
+
+  <section id="dashboard" class="view">
+    <div class="panel">
+      <div class="panelhead"><h2>Próximo corte de pago</h2><span class="pill pending" id="nextStatus">Pendiente</span></div>
+      <div id="nextDetails" class="small">Tus registros se agruparán según las fechas de tu empresa.</div>
+      <div class="actions"><button class="btn primary" onclick="showTab('add')">＋ Registrar viático</button><button class="btn secondary" onclick="showTab('cuts')">Ver todos los cortes</button></div>
+    </div>
+    <div class="panel">
+      <div class="panelhead"><h2>Últimos registros</h2><button class="btn secondary" onclick="showTab('records')">Ver todos</button></div>
+      <div id="recentList" class="recordlist"></div>
+    </div>
+    <div class="notice"><strong>Reglas configuradas:</strong> del 1 al 10 se paga el 18 del mismo mes; del 11 al último día del mes se paga el 8 del mes siguiente. Los montos son estimados según lo que registrés.</div>
+  </section>
+
+  <section id="add" class="view hidden">
+    <div class="panel">
+      <div class="panelhead"><h2 id="formTitle">Registrar un viático</h2></div>
+      <form id="expenseForm">
+        <input type="hidden" id="editId">
+        <div class="formgrid">
+          <div><label for="date">Fecha en que generaste el viático</label><input id="date" type="date" required></div>
+          <div><label for="amount">Monto (C$)</label><input id="amount" type="number" min="0.01" step="0.01" placeholder="Ej. 500" required></div>
+          <div><label for="category">Tipo de viático</label><select id="category"><option>Viático de trabajo</option><option>Alimentación</option><option>Combustible</option><option>Transporte</option><option>Hospedaje</option><option>Viático especial</option><option>Otro</option></select></div>
+          <div><label for="place">Lugar o destino (opcional)</label><input id="place" type="text" placeholder="Ej. Managua"></div>
+          <div class="full"><label for="description">Descripción (opcional)</label><textarea id="description" placeholder="Detalle del trabajo o motivo"></textarea></div>
+        </div>
+        <div class="actions"><button class="btn primary" type="submit" id="saveBtn">Guardar viático</button><button class="btn secondary" type="button" onclick="resetForm();showTab('dashboard')">Cancelar</button></div>
+      </form>
+    </div>
+  </section>
+
+  <section id="records" class="view hidden">
+    <div class="panel">
+      <div class="panelhead"><h2>Mis registros</h2><button class="btn secondary" onclick="exportCSV()">Exportar CSV</button></div>
+      <div class="formgrid" style="margin-bottom:14px">
+        <div><label for="filterMonth">Filtrar por mes</label><input id="filterMonth" type="month"></div>
+        <div><label for="filterStatus">Estado del corte</label><select id="filterStatus"><option value="">Todos</option><option value="pending">Pendiente de pago</option><option value="paid">Pagado</option></select></div>
+      </div>
+      <div id="allRecords" class="recordlist"></div>
+    </div>
+  </section>
+
+  <section id="cuts" class="view hidden">
+    <div class="panel">
+      <div class="panelhead"><h2>Cortes y pagos</h2><button class="btn secondary" onclick="render()">Actualizar</button></div>
+      <p class="small">Cada grupo reúne los viáticos de un período. Al confirmar el pago, ese corte queda marcado como pagado; los montos no se trasladan al siguiente corte.</p>
+      <div id="cutsList" class="cutlist"></div>
+    </div>
+  </section>
+
+  <section id="backup" class="view hidden">
+    <div class="panel">
+      <div class="panelhead"><h2>Copias de seguridad</h2></div>
+      <p class="small">Los datos se guardan en este dispositivo y navegador. Exportá una copia periódicamente para proteger tus registros o transferirlos a otro teléfono.</p>
+      <div class="actions"><button class="btn primary" onclick="exportBackup()">Descargar copia de seguridad</button><button class="btn secondary" onclick="document.getElementById('importFile').click()">Restaurar una copia</button><input class="hidden" id="importFile" type="file" accept=".json,application/json"></div>
+      <div class="notice">Esta versión no sincroniza datos entre dispositivos. Para instalarla como aplicación PWA, los archivos deben publicarse en un sitio seguro (HTTPS). Si abrís este archivo directamente, algunas funciones de instalación y modo sin conexión pueden no estar disponibles.</div>
+      <div class="actions"><button class="btn danger" onclick="clearAll()">Borrar todos mis datos</button></div>
+    </div>
+  </section>
+  <div class="foot">Mis Viáticos · Datos guardados localmente en este dispositivo</div>
+</main>
+<script>
+const STORE='misViaticos.v1';
+let records=loadRecords(), cuts=loadCuts();
+function loadRecords(){try{return JSON.parse(localStorage.getItem(STORE)||'[]')}catch(e){return []}}
+function loadCuts(){try{return JSON.parse(localStorage.getItem(STORE+'.cuts')||'{}')}catch(e){return {}}}
+function persist(){localStorage.setItem(STORE,JSON.stringify(records));localStorage.setItem(STORE+'.cuts',JSON.stringify(cuts));render()}
+function money(n){return new Intl.NumberFormat('es-NI',{style:'currency',currency:'NIO',minimumFractionDigits:2}).format(Number(n)||0).replace('NIO','C$')}
+function dateObj(s){return new Date(s+'T12:00:00')}
+function fmtDate(s){if(!s)return '';return new Intl.DateTimeFormat('es-NI',{day:'2-digit',month:'short',year:'numeric'}).format(dateObj(s))}
+function keyFor(date){const d=dateObj(date), y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0');return d.getDate()<=10?`${y}-${m}-A`:`${y}-${m}-B`}
+function cutInfo(key){const [y,m,half]=key.split('-');const year=Number(y),month=Number(m);const last=new Date(year,month,0).getDate();if(half==='A')return {key,start:`${y}-${m}-01`,end:`${y}-${m}-10`,pay:`${y}-${m}-18`,label:`Del 1 al 10 de ${monthName(month-1)} de ${year}`};const next=new Date(year,month,8);return {key,start:`${y}-${m}-11`,end:`${y}-${m}-${last}`,pay:`${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-08`,label:`Del 11 al ${last} de ${monthName(month-1)} de ${year}`}}
+function monthName(i){return new Intl.DateTimeFormat('es-NI',{month:'long'}).format(new Date(2024,i,1))}
+function sum(arr){return arr.reduce((a,r)=>a+Number(r.amount||0),0)}
+function cutRecords(key){return records.filter(r=>keyFor(r.date)===key)}
+function cutStatus(key){return cuts[key]?.status==='paid'?'paid':'pending'}
+function currentCut(){const now=new Date(), today=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;const candidates=[];for(let off=-1;off<=3;off++){const d=new Date(now.getFullYear(),now.getMonth()+off,1);const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0');candidates.push(`${y}-${m}-A`,`${y}-${m}-B`)}return candidates.map(k=>({k,info:cutInfo(k)})).filter(x=>x.info.pay>=today&&cutStatus(x.k)!=='paid').sort((a,b)=>a.info.pay.localeCompare(b.info.pay))[0]?.k||keyFor(today)}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function recordCard(r,buttons=true){const info=cutInfo(keyFor(r.date)), paid=cutStatus(info.key)==='paid';return `<div class="item"><div><div class="itemtitle">${esc(r.category||'Viático')}</div><div class="itemmeta">${fmtDate(r.date)}${r.place?' · '+esc(r.place):''}${r.description?'<br>'+esc(r.description):''}<br>${esc(info.label)} · Pago ${fmtDate(info.pay)}</div><span class="pill ${paid?'':'pending'}">${paid?'Pagado':'Pendiente de pago'}</span>${buttons?`<div class="itembuttons"><button class="btn secondary" onclick="editRecord('${r.id}')">Editar</button><button class="btn danger" onclick="deleteRecord('${r.id}')">Eliminar</button></div>`:''}</div><div class="itemright"><div class="itemamount">${money(r.amount)}</div></div></div>`}
+function render(){records=loadRecords();cuts=loadCuts();const key=currentCut(),info=cutInfo(key),arr=cutRecords(key);document.getElementById('nextAmount').textContent=money(sum(arr));document.getElementById('nextDate').textContent='Fecha prevista: '+fmtDate(info.pay);document.getElementById('nextCount').textContent=arr.length;const now=new Date(),monthPrefix=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;document.getElementById('monthTotal').textContent=money(sum(records.filter(r=>r.date.startsWith(monthPrefix))));document.getElementById('nextStatus').textContent=cutStatus(key)==='paid'?'Pagado':'Pendiente';document.getElementById('nextStatus').className='pill '+(cutStatus(key)==='paid'?'':'pending');document.getElementById('nextDetails').innerHTML=`<strong>${esc(info.label)}</strong><br>Fecha de pago: ${fmtDate(info.pay)}<br>Registros incluidos: ${arr.length}<br>Total previsto: <strong>${money(sum(arr))}</strong>`;
+const recent=[...records].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,4);document.getElementById('recentList').innerHTML=recent.length?recent.map(r=>recordCard(r,false)).join(''):'<div class="empty">Todavía no has registrado viáticos. Pulsa “Registrar viático” para comenzar.</div>';
+const fm=document.getElementById('filterMonth')?.value||'',fs=document.getElementById('filterStatus')?.value||'';const filtered=[...records].sort((a,b)=>b.date.localeCompare(a.date)).filter(r=>(!fm||r.date.startsWith(fm))&&(!fs||cutStatus(keyFor(r.date))===fs));document.getElementById('allRecords').innerHTML=filtered.length?filtered.map(r=>recordCard(r)).join(''):'<div class="empty">No hay registros que coincidan con el filtro.</div>';
+const keys=[...new Set(records.map(r=>keyFor(r.date)))];for(let off=-1;off<=4;off++){const d=new Date(now.getFullYear(),now.getMonth()+off,1),y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0');keys.push(`${y}-${m}-A`,`${y}-${m}-B`)}const unique=[...new Set(keys)].sort((a,b)=>cutInfo(b).pay.localeCompare(cutInfo(a).pay));document.getElementById('cutsList').innerHTML=unique.map(k=>{const ci=cutInfo(k),rs=cutRecords(k),st=cutStatus(k);return `<div class="item"><div><div class="itemtitle">${esc(ci.label)}</div><div class="itemmeta">Pago previsto: ${fmtDate(ci.pay)} · ${rs.length} registro(s)</div><span class="pill ${st==='paid'?'':'pending'}">${st==='paid'?'Pagado':'Pendiente de pago'}</span><div class="itembuttons">${st==='paid'?`<button class="btn secondary" onclick="unpay('${k}')">Reabrir corte</button>`:`<button class="btn primary" onclick="markPaid('${k}')">Confirmar pago recibido</button>`}</div></div><div class="itemright"><div class="itemamount">${money(sum(rs))}</div></div></div>`}).join('')||'<div class="empty">Todavía no hay cortes.</div>';
+}
+function showTab(id){document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));if(id==='add'&&!document.getElementById('editId').value)document.getElementById('date').value ||= localISO();render();window.scrollTo({top:0,behavior:'smooth'})}
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
+function localISO(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function resetForm(){document.getElementById('expenseForm').reset();document.getElementById('editId').value='';document.getElementById('date').value=localISO();document.getElementById('formTitle').textContent='Registrar un viático';document.getElementById('saveBtn').textContent='Guardar viático'}
+document.getElementById('expenseForm').addEventListener('submit',e=>{e.preventDefault();const id=document.getElementById('editId').value||String(Date.now())+Math.random().toString(16).slice(2);const item={id,date:document.getElementById('date').value,amount:Number(document.getElementById('amount').value),category:document.getElementById('category').value,place:document.getElementById('place').value.trim(),description:document.getElementById('description').value.trim()};if(!item.date||!(item.amount>0)){alert('Ingresá una fecha y un monto mayor que cero.');return}const old=records.find(r=>r.id===id);if(old&&keyFor(old.date)!==keyFor(item.date)&&cutStatus(keyFor(old.date))==='paid'&&!confirm('Este registro pertenece a un corte pagado. ¿Querés moverlo a otro corte?'))return;if(old)records=records.map(r=>r.id===id?item:r);else records.push(item);persist();resetForm();showTab('records')});
+function editRecord(id){const r=records.find(x=>x.id===id);if(!r)return;showTab('add');document.getElementById('editId').value=r.id;document.getElementById('date').value=r.date;document.getElementById('amount').value=r.amount;document.getElementById('category').value=r.category;document.getElementById('place').value=r.place||'';document.getElementById('description').value=r.description||'';document.getElementById('formTitle').textContent='Editar viático';document.getElementById('saveBtn').textContent='Guardar cambios'}
+function deleteRecord(id){if(confirm('¿Eliminar este registro? Esta acción no se puede deshacer.')){records=records.filter(r=>r.id!==id);persist()}}
+function markPaid(key){const rs=cutRecords(key),ci=cutInfo(key);if(!rs.length&&!confirm('Este corte no tiene registros. ¿Querés marcarlo como pagado de todos modos?'))return;const amount=prompt(`Confirmá el monto que recibiste para ${ci.label}. Total registrado: ${sum(rs).toFixed(2)} C$`,sum(rs).toFixed(2));if(amount===null)return;const n=Number(amount);if(!Number.isFinite(n)||n<0){alert('Ingresá un monto válido.');return}cuts[key]={status:'paid',paidAt:localISO(),received:n};persist();alert('Pago guardado. El monto registrado del corte fue '+money(sum(rs))+' y confirmaste recibir '+money(n)+'.')}
+function unpay(key){if(confirm('¿Querés reabrir este corte y quitar el estado pagado?')){delete cuts[key];persist()}}
+function exportCSV(){const rows=[['Fecha','Concepto','Monto C$','Lugar','Descripción','Período de corte','Fecha de pago','Estado'],...records.map(r=>{const ci=cutInfo(keyFor(r.date));return [r.date,r.category,r.amount,r.place||'',r.description||'',ci.label,ci.pay,cutStatus(keyFor(r.date))==='paid'?'Pagado':'Pendiente']})];const csv=rows.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');download('\ufeff'+csv,'mis-viaticos.csv','text/csv;charset=utf-8')}
+function exportBackup(){download(JSON.stringify({version:1,records,cuts,exportedAt:new Date().toISOString()},null,2),'copia-mis-viaticos.json','application/json')}
+function download(content,name,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+document.getElementById('importFile').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!Array.isArray(data.records)||typeof data.cuts!=='object')throw new Error('Formato inválido');if(!confirm('Restaurar esta copia reemplazará los registros actuales. ¿Continuar?'))return;records=data.records;cuts=data.cuts||{};persist();alert('Copia restaurada correctamente.')}catch(err){alert('No se pudo restaurar la copia. Verificá que sea un archivo de respaldo de Mis Viáticos.')}e.target.value=''});
+function clearAll(){if(confirm('¿Borrar TODOS los registros y estados de pago guardados en este dispositivo? Exportá una copia antes si querés conservarlos.')){records=[];cuts={};persist();alert('Se borraron los datos locales.')}} 
+document.getElementById('filterMonth').addEventListener('change',render);document.getElementById('filterStatus').addEventListener('change',render);
+if('serviceWorker' in navigator && location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+resetForm();render();
+</script>
+</body>
+</html>

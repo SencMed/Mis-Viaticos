@@ -1,0 +1,17 @@
+{
+  "name": "Mis Viáticos",
+  "short_name": "Viáticos",
+  "description": "Control personal de viáticos y fechas de pago",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f4f7f4",
+  "theme_color": "#123b35",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
